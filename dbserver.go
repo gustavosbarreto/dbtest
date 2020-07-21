@@ -70,16 +70,8 @@ type DBServer struct {
 	client  *mongo.Client
 	output  bytes.Buffer
 	server  *exec.Cmd
-	dbpath  string
 	host    string
 	tomb    tomb.Tomb
-}
-
-// SetPath defines the path to the directory where the database files will be
-// stored if it is started. The directory path itself is not created or removed
-// by the test helper.
-func (dbs *DBServer) SetPath(dbpath string) {
-	dbs.dbpath = dbpath
 }
 
 func (dbs *DBServer) SetTimeout(timeout int) {
@@ -89,9 +81,6 @@ func (dbs *DBServer) SetTimeout(timeout int) {
 func (dbs *DBServer) start() {
 	if dbs.server != nil {
 		panic("DBServer already started")
-	}
-	if dbs.dbpath == "" {
-		panic("DBServer.SetPath must be called before using the server")
 	}
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -103,7 +92,6 @@ func (dbs *DBServer) start() {
 
 	args := []string{
 		"run", "--rm", "--net=host", "mongo:4.2.8",
-		"--dbpath", dbs.dbpath,
 		"--bind_ip", "127.0.0.1",
 		"--port", strconv.Itoa(addr.Port),
 		"--nojournal",
